@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitCheck — AI Job Matching</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f2;
+  --white: #ffffff;
+  --black: #111110;
+  --accent: #2a5cff;
+  --accent-light: #eef1ff;
+  --gray: #6b6b6b;
+  --gray-light: #e8e7e3;
+  --gray-mid: #d0cfc9;
+  --green: #1a9e6a;
+  --green-bg: #edfaf4;
+  --yellow: #c97f00;
+  --yellow-bg: #fff8e6;
+  --red: #d63b3b;
+  --red-bg: #fff0f0;
+  --blue-bg: #eef3ff;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 20px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(247,246,242,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-light);
+  padding: 0 40px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--black);
+}
+
+.logo span { color: var(--accent); }
+
+.lang-toggle {
+  display: flex; gap: 2px;
+  background: var(--gray-light);
+  border-radius: 8px; padding: 3px;
+}
+
+.lang-btn {
+  background: none; border: none;
+  padding: 4px 12px; border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; color: var(--gray);
+  transition: all 0.15s;
+}
+
+.lang-btn.active {
+  background: var(--white);
+  color: var(--black);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* MAIN */
+main {
+  padding-top: 60px;
+  min-height: 100vh;
+}
+
+/* LANDING */
+#landing {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: calc(100vh - 60px);
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-light);
+  color: var(--accent);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.hero-dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+  max-width: 800px;
+}
+
+h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.hero-sub {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--gray);
+  max-width: 480px;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+.features-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 48px;
+}
+
+.feature-chip {
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 13px; color: var(--gray);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.feature-chip b { color: var(--black); font-weight: 600; }
+
+.start-btn {
+  background: var(--black);
+  color: var(--white);
+  border: none; border-radius: var(--radius);
+  padding: 16px 40px;
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+
+.start-btn:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(42,92,255,0.3);
+}
+
+.start-btn svg { width: 18px; height: 18px; }
+
+/* APP */
+#app { display: none; }
+
+.app-container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* STEPS */
+.steps-bar {
+  display: flex; align-items: center;
+  gap: 0; margin-bottom: 40px;
+}
+
+.step-item {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1;
+}
+
+.step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  background: var(--gray-light);
+  color: var(--gray);
+}
+
+.step-num.active {
+  background: var(--black);
+  color: var(--white);
+}
+
+.step-num.done {
+  background: var(--green);
+  color: var(--white);
+}
+
+.step-label {
+  font-size: 13px; font-weight: 500;
+  color: var(--gray);
+  transition: color 0.3s;
+}
+
+.step-label.active { color: var(--black); }
+
+.step-line {
+  height: 1px; flex: 1;
+  background: var(--gray-light);
+  margin: 0 12px;
+}
+
+/* CARDS */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.card-sub {
+  font-size: 14px; color: var(--gray);
+  margin-bottom: 28px;
+}
+
+/* TABS */
+.tabs {
+  display: flex; gap: 4px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 4px; margin-bottom: 24px;
+}
+
+.tab {
+  flex: 1; padding: 10px;
+  background: none; border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; color: var(--gray);
+  transition: all 0.15s;
+}
+
+.tab.active {
+  background: var(--white);
+  color: var(--black);
+  box-shadow: var(--shadow);
+}
+
+/* UPLOAD ZONE */
+.upload-zone {
+  border: 2px dashed var(--gray-mid);
+  border-radius: var(--radius);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg);
+  position: relative;
+}
+
+.upload-zone:hover, .upload-zone.drag {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.upload-zone input {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+
+.upload-icon {
+  font-size: 40px; margin-bottom: 12px;
+}
+
+.upload-zone h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.upload-zone p { font-size: 13px; color: var(--gray); }
+
+.upload-success {
+  display: none;
+  background: var(--green-bg);
+  border: 1px solid var(--green);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  color: var(--green);
+  font-weight: 500;
+  align-items: center; gap: 10px;
+}
+
+/* FORM */
+.form-group { margin-bottom: 20px; }
+
+.form-group label {
+  display: block;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 7px;
+  color: var(--black);
+}
+
+.form-group label span {
+  color: var(--gray); font-weight: 400;
+}
+
+input[type="text"], textarea, select {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  background: var(--white);
+}
+
+input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--black);
+  color: var(--white);
+  border: none; border-radius: var(--radius-sm);
+  padding: 14px 28px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(42,92,255,0.25);
+}
+
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--bg);
+  color: var(--black);
+  border: 1.5px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover { border-color: var(--black); }
+
+/* LOADING */
+.loading-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 60px 32px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--gray-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-msg {
+  font-size: 14px; color: var(--gray);
+  font-style: italic;
+}
+
+/* RESULTS */
+.verdict-card {
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 20px;
+}
+
+.verdict-card.go { background: var(--green-bg); border: 1.5px solid var(--green); }
+.verdict-card.maybe { background: var(--yellow-bg); border: 1.5px solid var(--yellow); }
+.verdict-card.no { background: var(--red-bg); border: 1.5px solid var(--red); }
+
+.verdict-emoji-big { font-size: 40px; flex-shrink: 0; }
+
+.verdict-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.verdict-card.go .verdict-title { color: var(--green); }
+.verdict-card.maybe .verdict-title { color: var(--yellow); }
+.verdict-card.no .verdict-title { color: var(--red); }
+
+.verdict-desc { font-size: 14px; color: var(--gray); line-height: 1.6; }
+
+.result-company {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px; font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.result-role { font-size: 15px; color: var(--accent); font-weight: 500; margin-bottom: 24px; }
+
+.scores-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 16px;
+}
+
+.score-card {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  position: relative; overflow: hidden;
+}
+
+.score-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.score-card.green::after { background: var(--green); }
+.score-card.yellow::after { background: var(--yellow); }
+.score-card.red::after { background: var(--red); }
+.score-card.blue::after { background: var(--accent); }
+
+.score-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--gray); margin-bottom: 8px;
+}
+
+.score-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px; font-weight: 800;
+  line-height: 1;
+}
+
+.score-card.green .score-val { color: var(--green); }
+.score-card.yellow .score-val { color: var(--yellow); }
+.score-card.red .score-val { color: var(--red); }
+.score-card.blue .score-val { color: var(--accent); font-size: 18px; }
+
+.score-sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
+.detail-section { margin-bottom: 16px; }
+
+.detail-section h4 {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--gray); margin-bottom: 12px;
+}
+
+.point-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px; font-size: 14px; line-height: 1.5;
+}
+
+.point-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 6px;
+}
+
+.point-dot.green { background: var(--green); }
+.point-dot.yellow { background: var(--yellow); }
+.point-dot.red { background: var(--red); }
+
+.tip-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--blue-bg);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  font-size: 13px; line-height: 1.5;
+}
+
+.tip-num {
+  width: 20px; height: 20px;
+  background: var(--accent);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  flex-shrink: 0;
+}
+
+.action-row {
+  display: flex; gap: 12px; margin-top: 24px;
+}
+
+.action-row .btn-secondary { flex: 1; }
+.action-row .btn-primary { flex: 2; }
+
+/* ERROR */
+.error-box {
+  background: var(--red-bg);
+  border: 1.5px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  color: var(--red);
+  font-size: 14px;
+  margin-top: 12px;
+  display: none;
+}
+
+@media (max-width: 600px) {
+  nav { padding: 0 20px; }
+  .app-container { padding: 24px 16px 60px; }
+  .card { padding: 20px; }
+  .scores-grid { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .action-row { flex-direction: column; }
+  h1 { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Fit<span>Check</span></div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- LANDING -->
+<section id="landing">
+  <div class="hero-tag">
+    <div class="hero-dot"></div>
+    <span data-ko="AI 채용 매칭" data-en="AI Job Matching">AI 채용 매칭</span>
+  </div>
+  <h1>
+    <span data-ko="내 이력서와 JD,<br><em>얼마나 맞을까?</em>" data-en="How well does<br>your resume <em>fit</em> the JD?">내 이력서와 JD,<br><em>얼마나 맞을까?</em></span>
+  </h1>
+  <p class="hero-sub" data-ko="이력서를 올리고 JD를 붙여넣으면 AI가 적합도, 예상 급여, 회사 안정성, 서류 통과 가능성을 분석해드려요." data-en="Upload your resume, paste a JD, and our AI analyzes your fit score, estimated salary, company stability, and interview pass rate.">
+    이력서를 올리고 JD를 붙여넣으면 AI가 적합도, 예상 급여, 회사 안정성, 서류 통과 가능성을 분석해드려요.
+  </p>
+  <div class="features-row">
+    <div class="feature-chip">✓ <b data-ko="JD 적합도" data-en="JD Fit Score">JD 적합도</b></div>
+    <div class="feature-chip">✓ <b data-ko="예상 급여" data-en="Salary Estimate">예상 급여</b></div>
+    <div class="feature-chip">✓ <b data-ko="회사 안정성" data-en="Company Stability">회사 안정성</b></div>
+    <div class="feature-chip">✓ <b data-ko="서류 통과 전략" data-en="Pass Strategy">서류 통과 전략</b></div>
+    <div class="feature-chip">✓ <b data-ko="무료" data-en="Free">무료</b></div>
+  </div>
+  <button class="start-btn" onclick="goToApp()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    <span data-ko="무료로 시작하기" data-en="Get Started Free">무료로 시작하기</span>
+  </button>
+</section>
+
+<!-- APP -->
+<section id="app">
+  <div class="app-container">
+
+    <!-- Steps -->
+    <div class="steps-bar">
+      <div class="step-item">
+        <div class="step-num active" id="step1-num">1</div>
+        <div class="step-label active" id="step1-label" data-ko="내 프로필" data-en="My Profile">내 프로필</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item">
+        <div class="step-num" id="step2-num">2</div>
+        <div class="step-label" id="step2-label" data-ko="JD 분석" data-en="JD Analysis">JD 분석</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item">
+        <div class="step-num" id="step3-num">3</div>
+        <div class="step-label" id="step3-label" data-ko="결과" data-en="Result">결과</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: PROFILE -->
+    <div id="view-step1">
+      <div class="card">
+        <div class="card-title" data-ko="내 프로필 입력" data-en="Enter Your Profile">내 프로필 입력</div>
+        <div class="card-sub" data-ko="이력서 PDF를 업로드하거나 직접 입력해주세요." data-en="Upload your resume PDF or fill in manually.">이력서 PDF를 업로드하거나 직접 입력해주세요.</div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('upload')" id="tab-upload" data-ko="📎 PDF 업로드" data-en="📎 Upload PDF">📎 PDF 업로드</button>
+          <button class="tab" onclick="switchTab('manual')" id="tab-manual" data-ko="✏️ 직접 입력" data-en="✏️ Type Manually">✏️ 직접 입력</button>
+        </div>
+
+        <!-- Upload tab -->
+        <div id="tab-content-upload">
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" accept=".pdf,.doc,.docx,.txt" id="fileInput" onchange="handleFile(this)">
+            <div class="upload-icon">📄</div>
+            <h3 data-ko="이력서 파일을 드래그하거나 클릭해서 업로드" data-en="Drag & drop or click to upload your resume">이력서 파일을 드래그하거나 클릭해서 업로드</h3>
+            <p data-ko="PDF, DOC, DOCX, TXT 지원" data-en="Supports PDF, DOC, DOCX, TXT">PDF, DOC, DOCX, TXT 지원</p>
+          </div>
+          <div class="upload-success" id="uploadSuccess">
+            <span>✅</span>
+            <span id="uploadFileName"></span>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="form-group">
+              <label data-ko="희망 연봉 (선택)" data-en="Expected Salary (optional)">희망 연봉 <span data-ko="(선택)" data-en="(optional)">(선택)</span></label>
+              <input type="text" id="u-salary" placeholder="예: USD 100,000 / KRW 7,000만">
+            </div>
+            <div class="form-group">
+              <label data-ko="희망 근무지 (선택)" data-en="Preferred Location (optional)">희망 근무지 <span>(선택)</span></label>
+              <input type="text" id="u-location" placeholder="예: Seoul, Dubai, Remote">
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual tab -->
+        <div id="tab-content-manual" style="display:none;">
+          <div class="form-group">
+            <label data-ko="이름" data-en="Name">이름 / Name</label>
+            <input type="text" id="m-name" placeholder="홍길동 / Jane Doe">
+          </div>
+          <div class="form-group">
+            <label data-ko="경력 요약" data-en="Career Summary">경력 요약</label>
+            <textarea id="m-summary" rows="4" placeholder="예: 마케팅 5년차, B2B 캠페인 및 이벤트 전문, GCC 시장 경험..."></textarea>
+          </div>
+          <div class="form-group">
+            <label data-ko="주요 스킬" data-en="Key Skills">주요 스킬</label>
+            <input type="text" id="m-skills" placeholder="예: Power BI, Google Analytics, Mailchimp, PMP®">
+          </div>
+          <div class="form-group">
+            <label data-ko="주요 성과" data-en="Key Achievements">주요 성과 <span>(선택)</span></label>
+            <textarea id="m-achievements" rows="3" placeholder="예: B2B 미팅 6,800+ 생성, 연간 예산 $1M 운용..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label data-ko="희망 연봉" data-en="Expected Salary">희망 연봉</label>
+              <input type="text" id="m-salary" placeholder="예: USD 100,000">
+            </div>
+            <div class="form-group">
+              <label data-ko="희망 근무지" data-en="Preferred Location">희망 근무지</label>
+              <input type="text" id="m-location" placeholder="예: Seoul, Remote">
+            </div>
+          </div>
+        </div>
+
+        <div class="error-box" id="step1-error"></div>
+        <br>
+        <button class="btn-primary" onclick="goToStep2()" data-ko="다음 단계 →" data-en="Next Step →">다음 단계 →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: JD -->
+    <div id="view-step2" style="display:none;">
+      <div class="card">
+        <div class="card-title" data-ko="JD 붙여넣기" data-en="Paste the Job Description">JD 붙여넣기</div>
+        <div class="card-sub" data-ko="링크드인이나 채용공고에서 JD 전체를 복사해서 붙여넣으세요." data-en="Copy and paste the full job description from LinkedIn or any job board.">링크드인이나 채용공고에서 JD 전체를 복사해서 붙여넣으세요.</div>
+        <textarea id="jdInput" rows="12" placeholder="여기에 JD 전체 내용을 붙여넣으세요...&#10;&#10;회사명, 직책, 요구사항, 직무 내용이 포함될수록 더 정확한 분석이 가능해요."></textarea>
+        <div class="error-box" id="step2-error"></div>
+        <br>
+        <div style="display:flex; gap:12px;">
+          <button class="btn-secondary" onclick="goBackStep1()" data-ko="← 이전" data-en="← Back">← 이전</button>
+          <button class="btn-primary" onclick="analyze()" data-ko="✦ 분석 시작" data-en="✦ Analyze Now">✦ 분석 시작</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="view-loading" style="display:none;">
+      <div class="loading-card">
+        <div class="loading-spinner"></div>
+        <div class="loading-msg" id="loadingMsg">분석 중...</div>
+      </div>
+    </div>
+
+    <!-- STEP 3: RESULT -->
+    <div id="view-result" style="display:none;">
+      <div id="resultContent"></div>
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button class="btn-secondary" onclick="analyzeAnother()" data-ko="← 다른 JD 분석" data-en="← Analyze Another JD">← 다른 JD 분석</button>
+        <button class="btn-primary" onclick="startFresh()" data-ko="처음부터 다시" data-en="Start Over">처음부터 다시</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<script>
+const WORKER_URL = 'https://falling-tooth-3d0f.hyejikim819.workers.dev';
+let currentLang = 'ko';
+let userProfile = '';
+let uploadedFileText = '';
+let currentTab = 'upload';
+
+const MSGS = {
+  ko: {
+    loading: ['JD 구조 파악 중...', '요구사항 분석 중...', '프로필과 매칭 중...', '급여 데이터 비교 중...', '서류 통과 가능성 계산 중...', '최종 리포트 작성 중...'],
+    step1err: '프로필을 입력하거나 파일을 업로드해주세요.',
+    step2err: 'JD를 붙여넣어 주세요.',
+    fitLabel: 'JD 적합도',
+    salaryLabel: '예상 연봉',
+    stabilityLabel: '회사 안정성',
+    passLabel: '서류 통과 가능성',
+    fitSection: 'JD 적합도 분석',
+    salarySection: '예상 급여 상세',
+    stabilitySection: '회사 안정성',
+    passSection: '서류 통과 전략',
+  },
+  en: {
+    loading: ['Parsing JD structure...', 'Analyzing requirements...', 'Matching your profile...', 'Comparing salary data...', 'Calculating pass rate...', 'Writing final report...'],
+    step1err: 'Please upload a file or fill in your profile.',
+    step2err: 'Please paste a job description.',
+    fitLabel: 'JD Fit Score',
+    salaryLabel: 'Salary Estimate',
+    stabilityLabel: 'Company Stability',
+    passLabel: 'Pass Rate',
+    fitSection: 'Fit Analysis',
+    salarySection: 'Salary Details',
+    stabilitySection: 'Company Stability',
+    passSection: 'Pass Strategy',
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+  document.querySelectorAll('[data-ko]').forEach(el => {
+    const text = el.getAttribute(`data-${lang}`);
+    if (text) el.innerHTML = text;
+  });
+}
+
+function goToApp() {
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+function goBackLanding() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('landing').style.display = 'flex';
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('tab-manual').classList.toggle('active', tab === 'manual');
+  document.getElementById('tab-content-upload').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('tab-content-manual').style.display = tab === 'manual' ? 'block' : 'none';
+}
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    uploadedFileText = e.target.result;
+    document.getElementById('uploadSuccess').style.display = 'flex';
+    document.getElementById('uploadFileName').textContent = `${file.name} 업로드 완료`;
+  };
+  reader.readAsText(file);
+}
+
+// Drag and drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) { document.getElementById('fileInput').files = e.dataTransfer.files; handleFile(document.getElementById('fileInput')); }
+});
+
+function buildProfile() {
+  if (currentTab === 'upload') {
+    const salary = document.getElementById('u-salary').value;
+    const location = document.getElementById('u-location').value;
+    let profile = uploadedFileText;
+    if (salary) profile += `\n희망 연봉: ${salary}`;
+    if (location) profile += `\n희망 근무지: ${location}`;
+    return profile;
+  } else {
+    const name = document.getElementById('m-name').value;
+    const summary = document.getElementById('m-summary').value;
+    const skills = document.getElementById('m-skills').value;
+    const achievements = document.getElementById('m-achievements').value;
+    const salary = document.getElementById('m-salary').value;
+    const location = document.getElementById('m-location').value;
+    return `이름: ${name}\n경력: ${summary}\n스킬: ${skills}\n성과: ${achievements}\n희망연봉: ${salary}\n근무지: ${location}`;
+  }
+}
+
+function goToStep2() {
+  const profile = buildProfile();
+  const errEl = document.getElementById('step1-error');
+  if (!profile.trim() || (currentTab === 'upload' && !uploadedFileText && !profile.trim())) {
+    errEl.textContent = MSGS[currentLang].step1err;
+    errEl.style.display = 'block'; return;
+  }
+  if (currentTab === 'manual') {
+    const summary = document.getElementById('m-summary').value;
+    if (!summary.trim()) { errEl.textContent = MSGS[currentLang].step1err; errEl.style.display = 'block'; return; }
+  }
+  errEl.style.display = 'none';
+  userProfile = profile;
+  document.getElementById('view-step1').style.display = 'none';
+  document.getElementById('view-step2').style.display = 'block';
+  document.getElementById('step1-num').classList.remove('active');
+  document.getElementById('step1-num').classList.add('done');
+  document.getElementById('step1-num').textContent = '✓';
+  document.getElementById('step2-num').classList.add('active');
+  document.getElementById('step2-label').classList.add('active');
+}
+
+function goBackStep1() {
+  document.getElementById('view-step2').style.display = 'none';
+  document.getElementById('view-step1').style.display = 'block';
+  document.getElementById('step1-num').classList.add('active');
+  document.getElementById('step1-num').classList.remove('done');
+  document.getElementById('step1-num').textContent = '1';
+  document.getElementById('step2-num').classList.remove('active');
+  document.getElementById('step2-label').classList.remove('active');
+}
+
+let msgInterval;
+function startLoadingMsgs() {
+  const msgs = MSGS[currentLang].loading;
+  let i = 0;
+  document.getElementById('loadingMsg').textContent = msgs[0];
+  msgInterval = setInterval(() => {
+    i = (i + 1) % msgs.length;
+    document.getElementById('loadingMsg').textContent = msgs[i];
+  }, 1800);
+}
+
+async function analyze() {
+  const jd = document.getElementById('jdInput').value.trim();
+  const errEl = document.getElementById('step2-error');
+  if (!jd) { errEl.textContent = MSGS[currentLang].step2err; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+
+  document.getElementById('view-step2').style.display = 'none';
+  document.getElementById('view-loading').style.display = 'block';
+  document.getElementById('step2-num').classList.remove('active');
+  document.getElementById('step2-num').classList.add('done');
+  document.getElementById('step2-num').textContent = '✓';
+  document.getElementById('step3-num').classList.add('active');
+  document.getElementById('step3-label').classList.add('active');
+  startLoadingMsgs();
+
+  const isKo = currentLang === 'ko';
+
+  const systemPrompt = `You are a senior career advisor. Analyze the JD against the candidate profile and return ONLY valid JSON. No other text. Keep all text values under 60 chars.
+
+{"company":"Company name","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","jd_fit_summary":"One line summary","jd_fit_points":[{"type":"green","text":"Strength"},{"type":"yellow","text":"Note"},{"type":"red","text":"Gap"}],"salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_note":"Salary context","salary_vs":"Good fit","stability_score":75,"stability_label":"Stable","stability_summary":"Stability summary","stability_points":[{"type":"green","text":"Positive"},{"type":"yellow","text":"Risk"}],"pass_score":70,"pass_label":"Promising","pass_summary":"Pass rate reasoning","pass_tips":["Tip 1","Tip 2","Tip 3"],"verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence summary"}
+
+Rules: scores 0-100, verdict_emoji one of 🟢🟡🔴, ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on job market in JD location.`;
+
+  const userPrompt = `[Candidate Profile]\n${userProfile}\n\n[Job Description]\n${jd}\n\nAnalyze this candidate for this JD.`;
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content.map(b => b.text || '').join('');
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    clearInterval(msgInterval);
+    renderResult(result);
+  } catch (e) {
+    clearInterval(msgInterval);
+    document.getElementById('view-loading').style.display = 'none';
+    document.getElementById('view-step2').style.display = 'block';
+    errEl.textContent = `오류: ${e.message}`;
+    errEl.style.display = 'block';
+  }
+}
+
+function getColor(score) {
+  if (score >= 75) return 'green';
+  if (score >= 50) return 'yellow';
+  return 'red';
+}
+
+function renderResult(r) {
+  document.getElementById('view-loading').style.display = 'none';
+  const m = MSGS[currentLang];
+  const verdictClass = r.verdict_emoji === '🟢' ? 'go' : r.verdict_emoji === '🟡' ? 'maybe' : 'no';
+  const fitColor = getColor(r.jd_fit_score);
+  const stabColor = getColor(r.stability_score);
+  const passColor = getColor(r.pass_score);
+
+  const fitPoints = (r.jd_fit_points || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
+  const stabPoints = (r.stability_points || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
+  const tips = (r.pass_tips || []).map((t, i) => `<div class="tip-item"><div class="tip-num">${i+1}</div><span>${t}</span></div>`).join('');
+
+  document.getElementById('resultContent').innerHTML = `
+    <div class="card" style="margin-bottom:12px;">
+      <div class="result-company">${r.company || '—'}</div>
+      <div class="result-role">${r.role || '—'}</div>
+      <div class="verdict-card ${verdictClass}">
+        <div class="verdict-emoji-big">${r.verdict_emoji}</div>
+        <div>
+          <div class="verdict-title">${r.verdict_text}</div>
+          <div class="verdict-desc">${r.verdict_reason}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scores-grid">
+      <div class="score-card ${fitColor}">
+        <div class="score-label">${m.fitLabel}</div>
+        <div class="score-val">${r.jd_fit_score}<span style="font-size:16px">%</span></div>
+        <div class="score-sub">${r.jd_fit_label}</div>
+      </div>
+      <div class="score-card blue">
+        <div class="score-label">${m.salaryLabel}</div>
+        <div class="score-val">${r.salary_currency} ${(r.salary_min||0).toLocaleString()}~${(r.salary_max||0).toLocaleString()}</div>
+        <div class="score-sub">${r.salary_vs}</div>
+      </div>
+      <div class="score-card ${stabColor}">
+        <div class="score-label">${m.stabilityLabel}</div>
+        <div class="score-val">${r.stability_score}<span style="font-size:16px">%</span></div>
+        <div class="score-sub">${r.stability_label}</div>
+      </div>
+      <div class="score-card ${passColor}">
+        <div class="score-label">${m.passLabel}</div>
+        <div class="score-val">${r.pass_score}<span style="font-size:16px">%</span></div>
+        <div class="score-sub">${r.pass_label}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="detail-section">
+        <h4>${m.fitSection}</h4>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.jd_fit_summary}</p>
+        ${fitPoints}
+      </div>
+      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
+      <div class="detail-section">
+        <h4>${m.salarySection}</h4>
+        <p style="font-size:14px;color:var(--gray);">${r.salary_note}</p>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
+      <div class="detail-section">
+        <h4>${m.stabilitySection}</h4>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.stability_summary}</p>
+        ${stabPoints}
+      </div>
+      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
+      <div class="detail-section">
+        <h4>${m.passSection}</h4>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.pass_summary}</p>
+        ${tips}
+      </div>
+    </div>
+  `;
+  document.getElementById('view-result').style.display = 'block';
+}
+
+function analyzeAnother() {
+  document.getElementById('view-result').style.display = 'none';
+  document.getElementById('resultContent').innerHTML = '';
+  document.getElementById('jdInput').value = '';
+  document.getElementById('step3-num').classList.remove('active');
+  document.getElementById('step2-num').classList.remove('done');
+  document.getElementById('step2-num').classList.add('active');
+  document.getElementById('step2-num').textContent = '2';
+  document.getElementById('step2-label').classList.add('active');
+  document.getElementById('view-step2').style.display = 'block';
+}
+
+function startFresh() {
+  location.reload();
+}
+</script>
+</body>
+</html>
