@@ -540,6 +540,55 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
   flex-shrink: 0;
 }
 
+.criteria-item {
+  margin-bottom: 18px;
+}
+
+.criteria-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.criteria-name {
+  font-size: 14px; font-weight: 600; color: var(--black);
+}
+
+.criteria-score {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+}
+
+.criteria-score.green { color: var(--green); }
+.criteria-score.yellow { color: var(--yellow); }
+.criteria-score.red { color: var(--red); }
+
+.criteria-bar {
+  width: 100%; height: 6px;
+  background: var(--gray-light);
+  border-radius: 4px; overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.criteria-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.criteria-fill.green { background: var(--green); }
+.criteria-fill.yellow { background: var(--yellow); }
+.criteria-fill.red { background: var(--red); }
+
+.criteria-comment { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+.lock-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--black); color: var(--white);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border-radius: 20px; padding: 3px 10px;
+  margin-left: 8px; vertical-align: middle;
+}
+
 .action-row {
   display: flex; gap: 12px; margin-top: 24px;
 }
@@ -595,10 +644,10 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
     이력서를 올리고 JD를 붙여넣으면 AI가 적합도, 예상 급여, 회사 안정성, 서류 통과 가능성을 분석해드려요.
   </p>
   <div class="features-row">
-    <div class="feature-chip">✓ <b data-ko="JD 적합도" data-en="JD Fit Score">JD 적합도</b></div>
+    <div class="feature-chip">✓ <b data-ko="ATS 통과율" data-en="ATS Pass Rate">ATS 통과율</b></div>
+    <div class="feature-chip">✓ <b data-ko="HR 매력도" data-en="HR Appeal">HR 매력도</b></div>
+    <div class="feature-chip">✓ <b data-ko="4대 핵심 기준" data-en="4 Core Criteria">4대 핵심 기준</b></div>
     <div class="feature-chip">✓ <b data-ko="예상 급여" data-en="Salary Estimate">예상 급여</b></div>
-    <div class="feature-chip">✓ <b data-ko="회사 안정성" data-en="Company Stability">회사 안정성</b></div>
-    <div class="feature-chip">✓ <b data-ko="서류 통과 전략" data-en="Pass Strategy">서류 통과 전략</b></div>
     <div class="feature-chip">✓ <b data-ko="무료" data-en="Free">무료</b></div>
   </div>
   <button class="start-btn" onclick="goToApp()">
@@ -746,30 +795,44 @@ let currentTab = 'upload';
 
 const MSGS = {
   ko: {
-    loading: ['JD 구조 파악 중...', '요구사항 분석 중...', '프로필과 매칭 중...', '급여 데이터 비교 중...', '서류 통과 가능성 계산 중...', '최종 리포트 작성 중...'],
+    loading: ['JD 구조 파악 중...', 'ATS 파싱 시뮬레이션 중...', 'HR 관점으로 재검토 중...', '4대 핵심 기준 채점 중...', '급여 데이터 비교 중...', '최종 리포트 작성 중...'],
     step1err: '프로필을 입력하거나 파일을 업로드해주세요.',
     step2err: 'JD를 붙여넣어 주세요.',
-    fitLabel: 'JD 적합도',
+    fitLabel: '종합 적합도',
     salaryLabel: '예상 연봉',
-    stabilityLabel: '회사 안정성',
-    passLabel: '서류 통과 가능성',
-    fitSection: 'JD 적합도 분석',
+    atsLabel: 'ATS 통과율',
+    hrLabel: 'HR 매력도',
+    fitSection: '종합 적합도 분석',
     salarySection: '예상 급여 상세',
-    stabilitySection: '회사 안정성',
-    passSection: '서류 통과 전략',
+    atsSection: 'ATS 분석 (기계 필터링 적합도)',
+    hrSection: 'HR 분석 (인사담당자 관점)',
+    criteriaSection: '4대 핵심 기준 세부 분석',
+    criteriaNames: [
+      'Achievement vs Responsibility',
+      '공고 맞춤화',
+      '프로그램 관리 역량',
+      '측정 가능한 성과'
+    ],
   },
   en: {
-    loading: ['Parsing JD structure...', 'Analyzing requirements...', 'Matching your profile...', 'Comparing salary data...', 'Calculating pass rate...', 'Writing final report...'],
+    loading: ['Parsing JD structure...', 'Simulating ATS parsing...', 'Reviewing from HR perspective...', 'Scoring 4 core criteria...', 'Comparing salary data...', 'Writing final report...'],
     step1err: 'Please upload a file or fill in your profile.',
     step2err: 'Please paste a job description.',
-    fitLabel: 'JD Fit Score',
+    fitLabel: 'Overall Fit',
     salaryLabel: 'Salary Estimate',
-    stabilityLabel: 'Company Stability',
-    passLabel: 'Pass Rate',
-    fitSection: 'Fit Analysis',
+    atsLabel: 'ATS Pass Rate',
+    hrLabel: 'HR Appeal',
+    fitSection: 'Overall Fit Analysis',
     salarySection: 'Salary Details',
-    stabilitySection: 'Company Stability',
-    passSection: 'Pass Strategy',
+    atsSection: 'ATS Analysis (Machine Filtering)',
+    hrSection: 'HR Analysis (Recruiter Perspective)',
+    criteriaSection: '4 Core Criteria Breakdown',
+    criteriaNames: [
+      'Achievement vs Responsibility',
+      'JD Keyword Alignment',
+      'Program Management Skills',
+      'Quantifiable Results'
+    ],
   }
 };
 
@@ -902,11 +965,11 @@ async function analyze() {
 
   const isKo = currentLang === 'ko';
 
-  const systemPrompt = `You are a senior career advisor. Analyze the JD against the candidate profile and return ONLY valid JSON. No other text. Keep all text values under 60 chars.
+  const systemPrompt = `You are a senior career advisor combining the perspective of (1) an ATS parsing engine, (2) a human HR recruiter, and (3) a resume-writing coach. Analyze the JD against the candidate profile and return ONLY valid JSON. No other text, no markdown fences. Keep all text values under 70 chars, comments under 90 chars.
 
-{"company":"Company name","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","jd_fit_summary":"One line summary","jd_fit_points":[{"type":"green","text":"Strength"},{"type":"yellow","text":"Note"},{"type":"red","text":"Gap"}],"salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_note":"Salary context","salary_vs":"Good fit","stability_score":75,"stability_label":"Stable","stability_summary":"Stability summary","stability_points":[{"type":"green","text":"Positive"},{"type":"yellow","text":"Risk"}],"pass_score":70,"pass_label":"Promising","pass_summary":"Pass rate reasoning","pass_tips":["Tip 1","Tip 2","Tip 3"],"verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence summary"}
+{"company":"Company name","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence overall summary","salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_note":"Salary context for this role and market","salary_vs":"Good fit vs expectation","ats_score":70,"ats_label":"Likely to Pass","ats_summary":"One line on machine-parsing / keyword-match risk","ats_points":[{"type":"green","text":"Strength for ATS parsing"},{"type":"yellow","text":"Formatting or keyword risk"},{"type":"red","text":"Missing required keyword/section"}],"hr_score":78,"hr_label":"Appealing","hr_summary":"One line on how a human recruiter would react","hr_points":[{"type":"green","text":"What grabs a recruiter's attention"},{"type":"yellow","text":"What feels generic or unclear"},{"type":"red","text":"What would make a recruiter skip this resume"}],"criteria":[{"score":65,"comment":"Achievement vs Responsibility: is it achievement-framed or just duty-listing?"},{"score":80,"comment":"JD keyword/skill alignment: how much of the JD language appears in the resume"},{"score":55,"comment":"Program/project management signal: evidence of leading or managing initiatives"},{"score":90,"comment":"Quantifiable results: presence of numbers, %, $, scale"}],"stability_score":75,"stability_label":"Stable","stability_summary":"Company stability summary","stability_points":[{"type":"green","text":"Positive stability signal"},{"type":"yellow","text":"Stability risk"}]}
 
-Rules: scores 0-100, verdict_emoji one of 🟢🟡🔴, ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on job market in JD location.`;
+Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, criteria array must have exactly 4 items in this fixed order: [Achievement vs Responsibility, JD Customization/Keyword Match, Program Management Capability, Quantifiable Results], ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on real job market data for the JD's location and seniority.`;
 
   const userPrompt = `[Candidate Profile]\n${userProfile}\n\n[Job Description]\n${jd}\n\nAnalyze this candidate for this JD.`;
 
@@ -947,12 +1010,29 @@ function renderResult(r) {
   const m = MSGS[currentLang];
   const verdictClass = r.verdict_emoji === '🟢' ? 'go' : r.verdict_emoji === '🟡' ? 'maybe' : 'no';
   const fitColor = getColor(r.jd_fit_score);
+  const atsColor = getColor(r.ats_score);
+  const hrColor = getColor(r.hr_score);
   const stabColor = getColor(r.stability_score);
-  const passColor = getColor(r.pass_score);
 
-  const fitPoints = (r.jd_fit_points || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
-  const stabPoints = (r.stability_points || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
-  const tips = (r.pass_tips || []).map((t, i) => `<div class="tip-item"><div class="tip-num">${i+1}</div><span>${t}</span></div>`).join('');
+  const pointsHtml = pts => (pts || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
+  const atsPoints = pointsHtml(r.ats_points);
+  const hrPoints = pointsHtml(r.hr_points);
+  const stabPoints = pointsHtml(r.stability_points);
+
+  const criteria = r.criteria || [];
+  const criteriaHtml = criteria.map((c, i) => {
+    const color = getColor(c.score);
+    const name = (m.criteriaNames && m.criteriaNames[i]) || `Criteria ${i + 1}`;
+    return `
+      <div class="criteria-item">
+        <div class="criteria-head">
+          <span class="criteria-name">${i + 1}. ${name}</span>
+          <span class="criteria-score ${color}">${c.score}%</span>
+        </div>
+        <div class="criteria-bar"><div class="criteria-fill ${color}" style="width:${c.score}%"></div></div>
+        <div class="criteria-comment">${c.comment || ''}</div>
+      </div>`;
+  }).join('');
 
   document.getElementById('resultContent').innerHTML = `
     <div class="card" style="margin-bottom:12px;">
@@ -978,23 +1058,34 @@ function renderResult(r) {
         <div class="score-val">${r.salary_currency} ${(r.salary_min||0).toLocaleString()}~${(r.salary_max||0).toLocaleString()}</div>
         <div class="score-sub">${r.salary_vs}</div>
       </div>
-      <div class="score-card ${stabColor}">
-        <div class="score-label">${m.stabilityLabel}</div>
-        <div class="score-val">${r.stability_score}<span style="font-size:16px">%</span></div>
-        <div class="score-sub">${r.stability_label}</div>
+      <div class="score-card ${atsColor}">
+        <div class="score-label">${m.atsLabel}</div>
+        <div class="score-val">${r.ats_score}<span style="font-size:16px">%</span></div>
+        <div class="score-sub">${r.ats_label}</div>
       </div>
-      <div class="score-card ${passColor}">
-        <div class="score-label">${m.passLabel}</div>
-        <div class="score-val">${r.pass_score}<span style="font-size:16px">%</span></div>
-        <div class="score-sub">${r.pass_label}</div>
+      <div class="score-card ${hrColor}">
+        <div class="score-label">${m.hrLabel}</div>
+        <div class="score-val">${r.hr_score}<span style="font-size:16px">%</span></div>
+        <div class="score-sub">${r.hr_label}</div>
       </div>
     </div>
 
     <div class="card">
       <div class="detail-section">
-        <h4>${m.fitSection}</h4>
-        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.jd_fit_summary}</p>
-        ${fitPoints}
+        <h4>${m.criteriaSection}</h4>
+        ${criteriaHtml}
+      </div>
+      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
+      <div class="detail-section">
+        <h4>${m.atsSection}</h4>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.ats_summary}</p>
+        ${atsPoints}
+      </div>
+      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
+      <div class="detail-section">
+        <h4>${m.hrSection}</h4>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.hr_summary}</p>
+        ${hrPoints}
       </div>
       <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
       <div class="detail-section">
@@ -1003,15 +1094,9 @@ function renderResult(r) {
       </div>
       <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
       <div class="detail-section">
-        <h4>${m.stabilitySection}</h4>
+        <h4>🏢 ${currentLang === 'ko' ? '회사 안정성' : 'Company Stability'}</h4>
         <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.stability_summary}</p>
         ${stabPoints}
-      </div>
-      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
-      <div class="detail-section">
-        <h4>${m.passSection}</h4>
-        <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.pass_summary}</p>
-        ${tips}
       </div>
     </div>
   `;
