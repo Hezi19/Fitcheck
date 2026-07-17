@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환불정책 — FitCheck</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#f7f6f2; --white:#fff; --black:#111110; --accent:#2a5cff; --gray:#6b6b6b; --gray-light:#e8e7e3; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--black);font-family:'Outfit',sans-serif;line-height:1.7;font-size:15px;}
+  .wrap{max-width:720px;margin:0 auto;padding:60px 24px 100px;}
+  .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+  .back{color:var(--accent);text-decoration:none;font-weight:500;font-size:14px;}
+  .lang-toggle{display:flex;gap:2px;background:var(--gray-light);border-radius:8px;padding:3px;}
+  .lang-btn{background:none;border:none;padding:4px 12px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:var(--gray);}
+  .lang-btn.active{background:var(--white);color:var(--black);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+  h1{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;margin-bottom:8px;letter-spacing:-0.02em;}
+  .updated{color:var(--gray);font-size:13px;margin-bottom:40px;}
+  h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin:32px 0 12px;}
+  p, li{color:#333;margin-bottom:12px;}
+  ul{padding-left:20px;margin-bottom:12px;}
+  .fill{background:#fff3cd;color:#7a5b00;padding:1px 6px;border-radius:4px;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-row">
+    <a class="back" href="./index.html" data-ko="← FitCheck로 돌아가기" data-en="← Back to FitCheck">← FitCheck로 돌아가기</a>
+    <div class="lang-toggle">
+      <button class="lang-btn" onclick="setLang('ko')">한국어</button>
+      <button class="lang-btn active" onclick="setLang('en')">English</button>
+    </div>
+  </div>
+
+  <h1 data-ko="환불정책" data-en="Refund Policy">환불정책</h1>
+  <div class="updated"><span data-ko="최종 업데이트:" data-en="Last updated:">최종 업데이트:</span> <span class="fill" data-ko="[날짜 입력]" data-en="[Insert date]">[날짜 입력]</span></div>
+
+  <p data-ko="FitCheck의 유료 리포트는 결제 즉시 디지털로 제공되는 서비스입니다. 아래 기준에 따라 환불을 처리합니다."
+     data-en="FitCheck's paid reports are digital services delivered immediately upon payment. Refunds are handled according to the criteria below.">
+    FitCheck의 유료 리포트는 결제 즉시 디지털로 제공되는 서비스입니다. 아래 기준에 따라 환불을 처리합니다.
+  </p>
+
+  <h2 data-ko="1. 전액 환불 대상" data-en="1. Eligible for Full Refund">1. 전액 환불 대상</h2>
+  <ul>
+    <li data-ko="결제는 완료되었으나 시스템 오류로 분석 결과(리포트)가 정상적으로 생성/제공되지 않은 경우" data-en="Payment was completed but the report was not generated/delivered due to a system error">결제는 완료되었으나 시스템 오류로 분석 결과(리포트)가 정상적으로 생성/제공되지 않은 경우</li>
+    <li data-ko="동일한 리포트가 중복으로 결제된 경우" data-en="The same report was purchased more than once by mistake (duplicate charge)">동일한 리포트가 중복으로 결제된 경우</li>
+    <li data-ko='결제 후 <span class="fill">[예: 7일]</span> 이내에 리포트를 실제로 열람하지 않은 경우' data-en='The report was never actually viewed within <span class="fill">[e.g. 7 days]</span> of purchase'>결제 후 <span class="fill">[예: 7일]</span> 이내에 리포트를 실제로 열람하지 않은 경우</li>
+  </ul>
+
+  <h2 data-ko="2. 환불이 제한되는 경우" data-en="2. Not Eligible for Refund">2. 환불이 제한되는 경우</h2>
+  <ul>
+    <li data-ko="리포트가 정상적으로 생성되어 이용자가 이미 열람한 경우 (단순 변심)" data-en="The report was generated successfully and already viewed by the user (simple change of mind)">리포트가 정상적으로 생성되어 이용자가 이미 열람한 경우 (단순 변심)</li>
+    <li data-ko="이용자가 부정확한 이력서/JD 정보를 입력하여 발생한 분석 결과에 대한 불만" data-en="Dissatisfaction with results caused by inaccurate resume/JD information entered by the user">이용자가 부정확한 이력서/JD 정보를 입력하여 발생한 분석 결과에 대한 불만</li>
+  </ul>
+
+  <h2 data-ko="3. 환불 요청 방법" data-en="3. How to Request a Refund">3. 환불 요청 방법</h2>
+  <p data-ko='환불을 원하시면 결제일로부터 <span class="fill">[예: 14일]</span> 이내에 <span class="fill">[이메일 주소 입력]</span>으로 결제 영수증(주문번호)과 함께 문의해주세요. 영업일 기준 <span class="fill">[예: 3~5일]</span> 이내에 검토 후 답변드립니다.'
+     data-en='To request a refund, contact <span class="fill">[Insert contact email]</span> within <span class="fill">[e.g. 14 days]</span> of purchase, including your receipt/order number. We will review and respond within <span class="fill">[e.g. 3-5]</span> business days.'>
+    환불을 원하시면 결제일로부터 <span class="fill">[예: 14일]</span> 이내에 <span class="fill">[이메일 주소 입력]</span>으로 결제 영수증(주문번호)과 함께 문의해주세요. 영업일 기준 <span class="fill">[예: 3~5일]</span> 이내에 검토 후 답변드립니다.
+  </p>
+
+  <h2 data-ko="4. 결제 대행사 안내" data-en="4. Payment Provider">4. 결제 대행사 안내</h2>
+  <p data-ko="모든 결제는 Paddle.com Market Ltd가 판매자(Merchant of Record)로서 처리하며, 환불 역시 Paddle을 통해 진행됩니다. Paddle의 일반 구매자 환불 정책이 함께 적용될 수 있습니다."
+     data-en="All payments are processed by Paddle.com Market Ltd as Merchant of Record, and refunds are also issued through Paddle. Paddle's general buyer refund terms may also apply.">
+    모든 결제는 Paddle.com Market Ltd가 판매자(Merchant of Record)로서 처리하며, 환불 역시 Paddle을 통해 진행됩니다. Paddle의 일반 구매자 환불 정책이 함께 적용될 수 있습니다.
+  </p>
+
+  <h2 data-ko="5. 문의" data-en="5. Contact">5. 문의</h2>
+  <p class="fill" data-ko="[이메일 주소 입력]" data-en="[Insert contact email]">[이메일 주소 입력]</p>
+</div>
+
+<script>
+function setLang(lang) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+  document.querySelectorAll('[data-ko]').forEach(el => {
+    const text = el.getAttribute(`data-${lang}`);
+    if (text) el.innerHTML = text;
+  });
+  document.documentElement.lang = lang;
+}
+setLang('en');
+</script>
+</body>
+</html>
