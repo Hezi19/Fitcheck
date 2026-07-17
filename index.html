@@ -464,7 +464,7 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
 .score-card {
   background: var(--bg);
   border-radius: var(--radius-sm);
-  padding: 20px;
+  padding: 18px;
   position: relative; overflow: hidden;
 }
 
@@ -487,14 +487,14 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
 
 .score-val {
   font-family: 'Syne', sans-serif;
-  font-size: 32px; font-weight: 800;
-  line-height: 1;
+  font-size: 24px; font-weight: 700;
+  line-height: 1.1;
 }
 
 .score-card.green .score-val { color: var(--green); }
 .score-card.yellow .score-val { color: var(--yellow); }
 .score-card.red .score-val { color: var(--red); }
-.score-card.blue .score-val { color: var(--accent); font-size: 18px; }
+.score-card.blue .score-val { color: var(--accent); font-size: 15px; }
 
 .score-sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
 
@@ -1097,7 +1097,7 @@ function renderResult(r) {
     <div class="scores-grid">
       <div class="score-card ${fitColor}">
         <div class="score-label">${m.fitLabel}</div>
-        <div class="score-val">${r.jd_fit_score}<span style="font-size:16px">%</span></div>
+        <div class="score-val">${r.jd_fit_score}<span style="font-size:13px">%</span></div>
         <div class="score-sub">${r.jd_fit_label}</div>
       </div>
       <div class="score-card blue">
@@ -1107,12 +1107,12 @@ function renderResult(r) {
       </div>
       <div class="score-card ${atsColor}">
         <div class="score-label">${m.atsLabel}</div>
-        <div class="score-val">${r.ats_score}<span style="font-size:16px">%</span></div>
+        <div class="score-val">${r.ats_score}<span style="font-size:13px">%</span></div>
         <div class="score-sub">${r.ats_label}</div>
       </div>
       <div class="score-card ${hrColor}">
         <div class="score-label">${m.hrLabel}</div>
-        <div class="score-val">${r.hr_score}<span style="font-size:16px">%</span></div>
+        <div class="score-val">${r.hr_score}<span style="font-size:13px">%</span></div>
         <div class="score-sub">${r.hr_label}</div>
       </div>
     </div>
