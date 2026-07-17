@@ -993,7 +993,8 @@ Salary accuracy rules (important):
 - If BOTH are clearly present: set salary_confidence to "High" (or "Medium" if the company is real but not well-known enough to have reliable public salary data), and give a reasonably tight salary_min/salary_max range.
 - If EITHER the company name or the exact job title is missing, generic, or unclear: set salary_confidence to "Low", widen salary_min/salary_max by roughly 30-50% to reflect the uncertainty, and make salary_note start with a short note telling the user the estimate is a rough range and that adding the exact company name and job title to the JD would make it far more accurate.
 - Never silently guess a specific company's pay band with high confidence if the company isn't named — be honest about uncertainty instead of hallucinating precision.
-- salary_basis must list the 3-4 concrete factors that actually drove the salary_min/salary_max numbers, e.g. seniority/years of experience implied by the JD or profile, the specific role/title level, the industry, the job's location and its general cost-of-living/market pay level, company size or funding stage if mentioned, and whether the range reflects base salary only or total comp. Do not cite specific named external sources, surveys, or reports (e.g. do not say "according to Glassdoor") — describe the reasoning factors themselves, not invented citations.`;
+- salary_basis must list the 3-4 concrete factors that actually drove the salary_min/salary_max numbers, e.g. seniority/years of experience implied by the JD or profile, the specific role/title level, the industry, the job's location and its general cost-of-living/market pay level, company size or funding stage if mentioned, and whether the range reflects base salary only or total comp. Do not cite specific named external sources, surveys, or reports (e.g. do not say "according to Glassdoor") — describe the reasoning factors themselves, not invented citations.
+- Be consistent and deterministic: base every score strictly on evidence explicitly present in the JD and profile text, not on stylistic impression or creative variation. Given the same JD and profile, you must produce the same scores and conclusions every time.`;
 
   const userPrompt = `[Candidate Profile]\n${userProfile}\n\n[Job Description]\n${jd}\n\nAnalyze this candidate for this JD.`;
 
@@ -1004,6 +1005,7 @@ Salary accuracy rules (important):
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 3500,
+        temperature: 0,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
       })
