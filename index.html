@@ -596,6 +596,19 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
 .action-row .btn-secondary { flex: 1; }
 .action-row .btn-primary { flex: 2; }
 
+.hint-box {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--yellow-bg);
+  border: 1.5px solid var(--yellow);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 13px; line-height: 1.6;
+  color: var(--black);
+}
+
+.hint-icon { font-size: 16px; flex-shrink: 0; }
+
 /* ERROR */
 .error-box {
   background: var(--red-bg);
@@ -755,6 +768,10 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
         <div class="card-title" data-ko="JD 붙여넣기" data-en="Paste the Job Description">JD 붙여넣기</div>
         <div class="card-sub" data-ko="링크드인이나 채용공고에서 JD 전체를 복사해서 붙여넣으세요." data-en="Copy and paste the full job description from LinkedIn or any job board.">링크드인이나 채용공고에서 JD 전체를 복사해서 붙여넣으세요.</div>
         <textarea id="jdInput" rows="12" placeholder="여기에 JD 전체 내용을 붙여넣으세요...&#10;&#10;회사명, 직책, 요구사항, 직무 내용이 포함될수록 더 정확한 분석이 가능해요."></textarea>
+        <div class="hint-box">
+          <span class="hint-icon">💡</span>
+          <span data-ko="정확한 예상 급여를 원하시면 JD에 <b>회사명</b>과 <b>정확한 직책명(예: Senior Marketing Manager)</b>이 꼭 포함되어야 해요. 이 정보가 없으면 급여 범위가 넓고 부정확하게 나올 수 있어요." data-en="For an accurate salary estimate, make sure the JD includes the <b>company name</b> and the <b>exact job title</b> (e.g. Senior Marketing Manager). Without these, the salary range will be wider and less precise.">정확한 예상 급여를 원하시면 JD에 <b>회사명</b>과 <b>정확한 직책명(예: Senior Marketing Manager)</b>이 꼭 포함되어야 해요. 이 정보가 없으면 급여 범위가 넓고 부정확하게 나올 수 있어요.</span>
+        </div>
         <div class="error-box" id="step2-error"></div>
         <br>
         <div style="display:flex; gap:12px;">
@@ -967,9 +984,15 @@ async function analyze() {
 
   const systemPrompt = `You are a senior career advisor combining the perspective of (1) an ATS parsing engine, (2) a human HR recruiter, and (3) a resume-writing coach. Analyze the JD against the candidate profile and return ONLY valid JSON. No other text, no markdown fences. Keep all text values under 70 chars, comments under 90 chars.
 
-{"company":"Company name","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence overall summary","salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_note":"Salary context for this role and market","salary_vs":"Good fit vs expectation","ats_score":70,"ats_label":"Likely to Pass","ats_summary":"One line on machine-parsing / keyword-match risk","ats_points":[{"type":"green","text":"Strength for ATS parsing"},{"type":"yellow","text":"Formatting or keyword risk"},{"type":"red","text":"Missing required keyword/section"}],"hr_score":78,"hr_label":"Appealing","hr_summary":"One line on how a human recruiter would react","hr_points":[{"type":"green","text":"What grabs a recruiter's attention"},{"type":"yellow","text":"What feels generic or unclear"},{"type":"red","text":"What would make a recruiter skip this resume"}],"criteria":[{"score":65,"comment":"Achievement vs Responsibility: is it achievement-framed or just duty-listing?"},{"score":80,"comment":"JD keyword/skill alignment: how much of the JD language appears in the resume"},{"score":55,"comment":"Program/project management signal: evidence of leading or managing initiatives"},{"score":90,"comment":"Quantifiable results: presence of numbers, %, $, scale"}],"stability_score":75,"stability_label":"Stable","stability_summary":"Company stability summary","stability_points":[{"type":"green","text":"Positive stability signal"},{"type":"yellow","text":"Stability risk"}]}
+{"company":"Company name or 'Not specified'","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence overall summary","salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_confidence":"High","salary_note":"Salary context for this role and market","salary_vs":"Good fit vs expectation","ats_score":70,"ats_label":"Likely to Pass","ats_summary":"One line on machine-parsing / keyword-match risk","ats_points":[{"type":"green","text":"Strength for ATS parsing"},{"type":"yellow","text":"Formatting or keyword risk"},{"type":"red","text":"Missing required keyword/section"}],"hr_score":78,"hr_label":"Appealing","hr_summary":"One line on how a human recruiter would react","hr_points":[{"type":"green","text":"What grabs a recruiter's attention"},{"type":"yellow","text":"What feels generic or unclear"},{"type":"red","text":"What would make a recruiter skip this resume"}],"criteria":[{"score":65,"comment":"Achievement vs Responsibility: is it achievement-framed or just duty-listing?"},{"score":80,"comment":"JD keyword/skill alignment: how much of the JD language appears in the resume"},{"score":55,"comment":"Program/project management signal: evidence of leading or managing initiatives"},{"score":90,"comment":"Quantifiable results: presence of numbers, %, $, scale"}],"stability_score":75,"stability_label":"Stable","stability_summary":"Company stability summary","stability_points":[{"type":"green","text":"Positive stability signal"},{"type":"yellow","text":"Stability risk"}]}
 
-Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, criteria array must have exactly 4 items in this fixed order: [Achievement vs Responsibility, JD Customization/Keyword Match, Program Management Capability, Quantifiable Results], ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on real job market data for the JD's location and seniority.`;
+Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, criteria array must have exactly 4 items in this fixed order: [Achievement vs Responsibility, JD Customization/Keyword Match, Program Management Capability, Quantifiable Results], ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on real job market data for the JD's location and seniority.
+
+Salary accuracy rules (important):
+- First check whether the JD clearly states a specific, real, named company AND a specific job title (not a vague category like "marketing role").
+- If BOTH are clearly present: set salary_confidence to "High" (or "Medium" if the company is real but not well-known enough to have reliable public salary data), and give a reasonably tight salary_min/salary_max range.
+- If EITHER the company name or the exact job title is missing, generic, or unclear: set salary_confidence to "Low", widen salary_min/salary_max by roughly 30-50% to reflect the uncertainty, and make salary_note start with a short note telling the user the estimate is a rough range and that adding the exact company name and job title to the JD would make it far more accurate.
+- Never silently guess a specific company's pay band with high confidence if the company isn't named — be honest about uncertainty instead of hallucinating precision.`;
 
   const userPrompt = `[Candidate Profile]\n${userProfile}\n\n[Job Description]\n${jd}\n\nAnalyze this candidate for this JD.`;
 
@@ -1029,6 +1052,14 @@ function renderResult(r) {
   const hrColor = getColor(r.hr_score);
   const stabColor = getColor(r.stability_score);
 
+  const confMap = {
+    High:  { ko: '신뢰도 높음', en: 'High confidence', cls: 'green' },
+    Medium:{ ko: '신뢰도 보통', en: 'Medium confidence', cls: 'yellow' },
+    Low:   { ko: '신뢰도 낮음', en: 'Low confidence', cls: 'red' },
+  };
+  const conf = confMap[r.salary_confidence] || null;
+  const confBadge = conf ? `<span class="lock-badge" style="background:var(--${conf.cls === 'green' ? 'green' : conf.cls === 'yellow' ? 'yellow' : 'red'});">${currentLang === 'ko' ? conf.ko : conf.en}</span>` : '';
+
   const pointsHtml = pts => (pts || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
   const atsPoints = pointsHtml(r.ats_points);
   const hrPoints = pointsHtml(r.hr_points);
@@ -1069,7 +1100,7 @@ function renderResult(r) {
         <div class="score-sub">${r.jd_fit_label}</div>
       </div>
       <div class="score-card blue">
-        <div class="score-label">${m.salaryLabel}</div>
+        <div class="score-label">${m.salaryLabel}${confBadge}</div>
         <div class="score-val">${r.salary_currency} ${(r.salary_min||0).toLocaleString()}~${(r.salary_max||0).toLocaleString()}</div>
         <div class="score-sub">${r.salary_vs}</div>
       </div>
