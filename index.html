@@ -978,16 +978,30 @@ Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, criteria array must 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
+        model: 'claude-sonnet-4-6',
+        max_tokens: 3500,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
       })
     });
     const data = await res.json();
+
+    if (!res.ok || data.error) {
+      const msg = (data.error && (data.error.message || data.error.type)) || `HTTP ${res.status}`;
+      throw new Error(`Worker/API 오류 — ${msg}`);
+    }
+    if (!data.content || !Array.isArray(data.content)) {
+      throw new Error(`예상치 못한 응답 형식: ${JSON.stringify(data).slice(0, 200)}`);
+    }
+
     const raw = data.content.map(b => b.text || '').join('');
     const clean = raw.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
+    let result;
+    try {
+      result = JSON.parse(clean);
+    } catch (parseErr) {
+      throw new Error(`AI 응답을 JSON으로 해석하지 못했어요 (응답이 중간에 끊겼을 수 있어요). 원본 앞부분: ${clean.slice(0, 150)}`);
+    }
     clearInterval(msgInterval);
     renderResult(result);
   } catch (e) {
@@ -996,6 +1010,7 @@ Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, criteria array must 
     document.getElementById('view-step2').style.display = 'block';
     errEl.textContent = `오류: ${e.message}`;
     errEl.style.display = 'block';
+    console.error('FitCheck analyze error:', e);
   }
 }
 
