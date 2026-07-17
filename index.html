@@ -822,7 +822,14 @@ let isPaid = false;
 
 try {
   Paddle.Environment.set('sandbox'); // ⚠️ remove this line when switching to a live Paddle account
-  Paddle.Initialize({ token: PADDLE_CLIENT_TOKEN });
+  Paddle.Initialize({
+    token: PADDLE_CLIENT_TOKEN,
+    eventCallback: function(evt) {
+      if (evt.name === 'checkout.completed') {
+        fetchPaidSection();
+      }
+    }
+  });
 } catch (e) {
   console.error('Paddle init failed:', e);
 }
@@ -1081,11 +1088,6 @@ function unlockReport() {
     settings: {
       displayMode: 'overlay',
       theme: 'light'
-    },
-    eventCallback: function(evt) {
-      if (evt.name === 'checkout.completed') {
-        fetchPaidSection();
-      }
     }
   });
 }
