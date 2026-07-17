@@ -1080,8 +1080,7 @@ function unlockReport() {
     items: [{ priceId: PADDLE_PRICE_ID, quantity: 1 }],
     settings: {
       displayMode: 'overlay',
-      theme: 'light',
-      successUrl: window.location.href
+      theme: 'light'
     },
     eventCallback: function(evt) {
       if (evt.name === 'checkout.completed') {
