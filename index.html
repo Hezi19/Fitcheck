@@ -631,6 +631,7 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
   h1 { font-size: 36px; }
 }
 </style>
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 </head>
 <body>
 
@@ -811,6 +812,20 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--gray); }
 
 <script>
 const WORKER_URL = 'https://falling-tooth-3d0f.hyejikim819.workers.dev';
+
+// --- Paddle payment config ---
+const PADDLE_CLIENT_TOKEN = 'test_020f3f61b00bd8e8d8e76240c62'; // sandbox token — safe to expose in frontend
+const PADDLE_PRICE_ID = 'pri_01kxqm5ak3trzm4xntkq12hnq9'; // FitCheck Full Report — $4.99
+let currentJD = '';
+let freeResultData = null;
+let isPaid = false;
+
+try {
+  Paddle.Environment.set('sandbox'); // ⚠️ remove this line when switching to a live Paddle account
+  Paddle.Initialize({ token: PADDLE_CLIENT_TOKEN });
+} catch (e) {
+  console.error('Paddle init failed:', e);
+}
 let currentLang = 'en';
 let userProfile = '';
 let uploadedFileText = '';
@@ -976,6 +991,8 @@ async function analyze() {
   const errEl = document.getElementById('step2-error');
   if (!jd) { errEl.textContent = MSGS[currentLang].step2err; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
+  currentJD = jd;
+  isPaid = false;
 
   document.getElementById('view-step2').style.display = 'none';
   document.getElementById('view-loading').style.display = 'block';
@@ -988,52 +1005,17 @@ async function analyze() {
 
   const isKo = currentLang === 'ko';
 
-  const systemPrompt = `You are a senior career advisor combining the perspective of (1) an ATS parsing engine, (2) a human HR recruiter, and (3) a resume-writing coach. Analyze the JD against the candidate profile and return ONLY valid JSON. No other text, no markdown fences. Keep all text values under 70 chars, comments under 90 chars.
+  const freeSystemPrompt = `You are a senior career advisor combining the perspective of (1) an ATS parsing engine and (2) a human HR recruiter. Analyze the JD against the candidate profile and return ONLY valid JSON. No other text, no markdown fences. Keep all text values under 70 chars, comments under 90 chars.
 
-{"company":"Company name or 'Not specified'","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence overall summary","salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_confidence":"High","salary_note":"Salary context for this role and market","salary_basis":["Factor 1 considered","Factor 2 considered","Factor 3 considered"],"salary_vs":"Good fit vs expectation","ats_score":70,"ats_label":"Likely to Pass","ats_summary":"One line on machine-parsing / keyword-match risk","ats_points":[{"type":"green","text":"Strength for ATS parsing"},{"type":"yellow","text":"Formatting or keyword risk"},{"type":"red","text":"Missing required keyword/section"}],"hr_score":78,"hr_label":"Appealing","hr_summary":"One line on how a human recruiter would react","hr_points":[{"type":"green","text":"What grabs a recruiter's attention"},{"type":"yellow","text":"What feels generic or unclear"},{"type":"red","text":"What would make a recruiter skip this resume"}],"criteria":[{"score":65,"comment":"Achievement vs Responsibility: is it achievement-framed or just duty-listing?"},{"score":80,"comment":"JD keyword/skill alignment: how much of the JD language appears in the resume"},{"score":55,"comment":"Program/project management signal: evidence of leading or managing initiatives"},{"score":90,"comment":"Quantifiable results: presence of numbers, %, $, scale"}],"stability_score":75,"stability_label":"Stable","stability_summary":"Company stability summary","stability_points":[{"type":"green","text":"Positive stability signal"},{"type":"yellow","text":"Stability risk"}]}
+{"company":"Company name or 'Not specified'","role":"Job title","jd_fit_score":85,"jd_fit_label":"High","verdict_emoji":"🟢","verdict_text":"Highly Recommended","verdict_reason":"2 sentence overall summary","ats_score":70,"ats_label":"Likely to Pass","ats_summary":"One line on machine-parsing / keyword-match risk","ats_points":[{"type":"green","text":"Strength for ATS parsing"},{"type":"yellow","text":"Formatting or keyword risk"},{"type":"red","text":"Missing required keyword/section"}],"hr_score":78,"hr_label":"Appealing","hr_summary":"One line on how a human recruiter would react","hr_points":[{"type":"green","text":"What grabs a recruiter's attention"},{"type":"yellow","text":"What feels generic or unclear"},{"type":"red","text":"What would make a recruiter skip this resume"}]}
 
-Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, criteria array must have exactly 4 items in this fixed order: [Achievement vs Responsibility, JD Customization/Keyword Match, Program Management Capability, Quantifiable Results], ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on real job market data for the JD's location and seniority.
-
-Salary accuracy rules (important):
-- First check whether the JD clearly states a specific, real, named company AND a specific job title (not a vague category like "marketing role").
-- If BOTH are clearly present: set salary_confidence to "High" (or "Medium" if the company is real but not well-known enough to have reliable public salary data), and give a reasonably tight salary_min/salary_max range.
-- If EITHER the company name or the exact job title is missing, generic, or unclear: set salary_confidence to "Low", widen salary_min/salary_max by roughly 30-50% to reflect the uncertainty, and make salary_note start with a short note telling the user the estimate is a rough range and that adding the exact company name and job title to the JD would make it far more accurate.
-- Never silently guess a specific company's pay band with high confidence if the company isn't named — be honest about uncertainty instead of hallucinating precision.
-- salary_basis must list the 3-4 concrete factors that actually drove the salary_min/salary_max numbers, e.g. seniority/years of experience implied by the JD or profile, the specific role/title level, the industry, the job's location and its general cost-of-living/market pay level, company size or funding stage if mentioned, and whether the range reflects base salary only or total comp. Do not cite specific named external sources, surveys, or reports (e.g. do not say "according to Glassdoor") — describe the reasoning factors themselves, not invented citations.
-- Be consistent and deterministic: base every score strictly on evidence explicitly present in the JD and profile text, not on stylistic impression or creative variation. Given the same JD and profile, you must produce the same scores and conclusions every time.`;
+Rules: all scores 0-100, verdict_emoji one of 🟢🟡🔴, ${isKo ? 'respond in Korean' : 'respond in English'}. Be consistent and deterministic: given the same JD and profile, always produce the same scores.`;
 
   const userPrompt = `[Candidate Profile]\n${userProfile}\n\n[Job Description]\n${jd}\n\nAnalyze this candidate for this JD.`;
 
   try {
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 3500,
-        temperature: 0,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    });
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      const msg = (data.error && (data.error.message || data.error.type)) || `HTTP ${res.status}`;
-      throw new Error(`Worker/API 오류 — ${msg}`);
-    }
-    if (!data.content || !Array.isArray(data.content)) {
-      throw new Error(`예상치 못한 응답 형식: ${JSON.stringify(data).slice(0, 200)}`);
-    }
-
-    const raw = data.content.map(b => b.text || '').join('');
-    const clean = raw.replace(/```json|```/g, '').trim();
-    let result;
-    try {
-      result = JSON.parse(clean);
-    } catch (parseErr) {
-      throw new Error(`AI 응답을 JSON으로 해석하지 못했어요 (응답이 중간에 끊겼을 수 있어요). 원본 앞부분: ${clean.slice(0, 150)}`);
-    }
+    const result = await callClaudeAPI(freeSystemPrompt, userPrompt);
+    freeResultData = result;
     clearInterval(msgInterval);
     renderResult(result);
   } catch (e) {
@@ -1043,6 +1025,85 @@ Salary accuracy rules (important):
     errEl.textContent = `오류: ${e.message}`;
     errEl.style.display = 'block';
     console.error('FitCheck analyze error:', e);
+  }
+}
+
+async function callClaudeAPI(systemPrompt, userPrompt) {
+  const res = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 3500,
+      temperature: 0,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+  const data = await res.json();
+
+  if (!res.ok || data.error) {
+    const msg = (data.error && (data.error.message || data.error.type)) || `HTTP ${res.status}`;
+    throw new Error(`Worker/API 오류 — ${msg}`);
+  }
+  if (!data.content || !Array.isArray(data.content)) {
+    throw new Error(`예상치 못한 응답 형식: ${JSON.stringify(data).slice(0, 200)}`);
+  }
+  const raw = data.content.map(b => b.text || '').join('');
+  const clean = raw.replace(/```json|```/g, '').trim();
+  try {
+    return JSON.parse(clean);
+  } catch (parseErr) {
+    throw new Error(`AI 응답을 JSON으로 해석하지 못했어요 (응답이 중간에 끊겼을 수 있어요). 원본 앞부분: ${clean.slice(0, 150)}`);
+  }
+}
+
+function buildPaidSystemPrompt() {
+  const isKo = currentLang === 'ko';
+  return `You are a senior career advisor and resume-writing coach. Analyze the JD against the candidate profile and return ONLY valid JSON with the exact-money salary estimate, a 4-criteria resume breakdown, and company stability. No other text, no markdown fences. Keep all text values under 70 chars, comments under 90 chars.
+
+{"salary_min":80000,"salary_max":120000,"salary_currency":"USD","salary_confidence":"High","salary_note":"Salary context for this role and market","salary_basis":["Factor 1 considered","Factor 2 considered","Factor 3 considered"],"salary_vs":"Good fit vs expectation","criteria":[{"score":65,"comment":"Achievement vs Responsibility: is it achievement-framed or just duty-listing?"},{"score":80,"comment":"JD keyword/skill alignment: how much of the JD language appears in the resume"},{"score":55,"comment":"Program/project management signal: evidence of leading or managing initiatives"},{"score":90,"comment":"Quantifiable results: presence of numbers, %, $, scale"}],"stability_score":75,"stability_label":"Stable","stability_summary":"Company stability summary","stability_points":[{"type":"green","text":"Positive stability signal"},{"type":"yellow","text":"Stability risk"}]}
+
+Rules: all scores 0-100, criteria array must have exactly 4 items in this fixed order: [Achievement vs Responsibility, JD Customization/Keyword Match, Program Management Capability, Quantifiable Results], ${isKo ? 'respond in Korean' : 'respond in English'}, salary based on real job market data for the JD's location and seniority.
+
+Salary accuracy rules (important):
+- First check whether the JD clearly states a specific, real, named company AND a specific job title (not a vague category like "marketing role").
+- If BOTH are clearly present: set salary_confidence to "High" (or "Medium" if the company is real but not well-known enough to have reliable public salary data), and give a reasonably tight salary_min/salary_max range.
+- If EITHER the company name or the exact job title is missing, generic, or unclear: set salary_confidence to "Low", widen salary_min/salary_max by roughly 30-50% to reflect the uncertainty, and make salary_note start with a short note telling the user the estimate is a rough range and that adding the exact company name and job title to the JD would make it far more accurate.
+- Never silently guess a specific company's pay band with high confidence if the company isn't named — be honest about uncertainty instead of hallucinating precision.
+- salary_basis must list the 3-4 concrete factors that actually drove the salary_min/salary_max numbers, e.g. seniority/years of experience implied by the JD or profile, the specific role/title level, the industry, the job's location and its general cost-of-living/market pay level, company size or funding stage if mentioned, and whether the range reflects base salary only or total comp. Do not cite specific named external sources, surveys, or reports (e.g. do not say "according to Glassdoor") — describe the reasoning factors themselves, not invented citations.
+- Be consistent and deterministic: base every score strictly on evidence explicitly present in the JD and profile text, not on stylistic impression or creative variation. Given the same JD and profile, you must produce the same scores and conclusions every time.`;
+}
+
+function unlockReport() {
+  Paddle.Checkout.open({
+    items: [{ priceId: PADDLE_PRICE_ID, quantity: 1 }],
+    settings: {
+      displayMode: 'overlay',
+      theme: 'light',
+      successUrl: window.location.href
+    },
+    eventCallback: function(evt) {
+      if (evt.name === 'checkout.completed') {
+        fetchPaidSection();
+      }
+    }
+  });
+}
+
+async function fetchPaidSection() {
+  const lockCard = document.getElementById('unlockCard');
+  if (lockCard) lockCard.innerHTML = `<div class="loading-spinner" style="margin:20px auto;"></div><div class="loading-msg" style="text-align:center;">${currentLang === 'ko' ? '결제 확인됨 — 상세 리포트 불러오는 중...' : 'Payment confirmed — loading your full report...'}</div>`;
+
+  const userPrompt = `[Candidate Profile]\n${userProfile}\n\n[Job Description]\n${currentJD}\n\nAnalyze this candidate for this JD.`;
+
+  try {
+    const paidResult = await callClaudeAPI(buildPaidSystemPrompt(), userPrompt);
+    isPaid = true;
+    renderPaidSection(paidResult);
+  } catch (e) {
+    if (lockCard) lockCard.innerHTML = `<div class="error-box" style="display:block;">${currentLang === 'ko' ? '결제는 완료됐지만 리포트를 불러오는 데 실패했어요' : 'Payment succeeded but we failed to load your report'}: ${e.message}</div>`;
+    console.error('FitCheck paid fetch error:', e);
   }
 }
 
@@ -1059,35 +1120,12 @@ function renderResult(r) {
   const fitColor = getColor(r.jd_fit_score);
   const atsColor = getColor(r.ats_score);
   const hrColor = getColor(r.hr_score);
-  const stabColor = getColor(r.stability_score);
-
-  const confMap = {
-    High:  { ko: '신뢰도 높음', en: 'High confidence', cls: 'green' },
-    Medium:{ ko: '신뢰도 보통', en: 'Medium confidence', cls: 'yellow' },
-    Low:   { ko: '신뢰도 낮음', en: 'Low confidence', cls: 'red' },
-  };
-  const conf = confMap[r.salary_confidence] || null;
-  const confBadge = conf ? `<span class="lock-badge" style="background:var(--${conf.cls === 'green' ? 'green' : conf.cls === 'yellow' ? 'yellow' : 'red'});">${currentLang === 'ko' ? conf.ko : conf.en}</span>` : '';
 
   const pointsHtml = pts => (pts || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
   const atsPoints = pointsHtml(r.ats_points);
   const hrPoints = pointsHtml(r.hr_points);
-  const stabPoints = pointsHtml(r.stability_points);
 
-  const criteria = r.criteria || [];
-  const criteriaHtml = criteria.map((c, i) => {
-    const color = getColor(c.score);
-    const name = (m.criteriaNames && m.criteriaNames[i]) || `Criteria ${i + 1}`;
-    return `
-      <div class="criteria-item">
-        <div class="criteria-head">
-          <span class="criteria-name">${i + 1}. ${name}</span>
-          <span class="criteria-score ${color}">${c.score}%</span>
-        </div>
-        <div class="criteria-bar"><div class="criteria-fill ${color}" style="width:${c.score}%"></div></div>
-        <div class="criteria-comment">${c.comment || ''}</div>
-      </div>`;
-  }).join('');
+  const isKo = currentLang === 'ko';
 
   document.getElementById('resultContent').innerHTML = `
     <div class="card" style="margin-bottom:12px;">
@@ -1108,11 +1146,6 @@ function renderResult(r) {
         <div class="score-val">${r.jd_fit_score}<span style="font-size:13px">%</span></div>
         <div class="score-sub">${r.jd_fit_label}</div>
       </div>
-      <div class="score-card blue">
-        <div class="score-label">${m.salaryLabel}${confBadge}</div>
-        <div class="score-val">${r.salary_currency} ${(r.salary_min||0).toLocaleString()}~${(r.salary_max||0).toLocaleString()}</div>
-        <div class="score-sub">${r.salary_vs}</div>
-      </div>
       <div class="score-card ${atsColor}">
         <div class="score-label">${m.atsLabel}</div>
         <div class="score-val">${r.ats_score}<span style="font-size:13px">%</span></div>
@@ -1123,14 +1156,13 @@ function renderResult(r) {
         <div class="score-val">${r.hr_score}<span style="font-size:13px">%</span></div>
         <div class="score-sub">${r.hr_label}</div>
       </div>
+      <div class="score-card blue" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">🔒</div>
+        <div class="score-label" style="margin-bottom:0;">${m.salaryLabel}</div>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="detail-section">
-        <h4>${m.criteriaSection}</h4>
-        ${criteriaHtml}
-      </div>
-      <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
+    <div class="card" style="margin-bottom:12px;">
       <div class="detail-section">
         <h4>${m.atsSection}</h4>
         <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.ats_summary}</p>
@@ -1142,24 +1174,85 @@ function renderResult(r) {
         <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.hr_summary}</p>
         ${hrPoints}
       </div>
+    </div>
+
+    <div class="card" id="unlockCard" style="text-align:center;padding:36px 24px;">
+      <div style="font-size:28px;margin-bottom:10px;">🔒</div>
+      <div class="card-title" style="font-size:18px;margin-bottom:8px;" data-ko="정확한 예상 급여 + 4대 핵심 기준 + 회사 안정성" data-en="Exact salary + 4-criteria breakdown + company stability">${isKo ? '정확한 예상 급여 + 4대 핵심 기준 + 회사 안정성' : 'Exact salary + 4-criteria breakdown + company stability'}</div>
+      <div class="card-sub" style="margin-bottom:20px;">${isKo ? '전체 리포트를 잠금 해제하고 확인하세요' : 'Unlock the full report to see these'}</div>
+      <button class="btn-primary" style="width:auto;padding:14px 32px;" onclick="unlockReport()">${isKo ? '🔓 전체 리포트 잠금 해제 — $4.99' : '🔓 Unlock Full Report — $4.99'}</button>
+    </div>
+  `;
+  document.getElementById('view-result').style.display = 'block';
+}
+
+function renderPaidSection(r) {
+  const m = MSGS[currentLang];
+  const isKo = currentLang === 'ko';
+  const stabColor = getColor(r.stability_score);
+
+  const confMap = {
+    High:  { ko: '신뢰도 높음', en: 'High confidence', cls: 'green' },
+    Medium:{ ko: '신뢰도 보통', en: 'Medium confidence', cls: 'yellow' },
+    Low:   { ko: '신뢰도 낮음', en: 'Low confidence', cls: 'red' },
+  };
+  const conf = confMap[r.salary_confidence] || null;
+  const confBadge = conf ? `<span class="lock-badge" style="background:var(--${conf.cls});">${isKo ? conf.ko : conf.en}</span>` : '';
+
+  const pointsHtml = pts => (pts || []).map(p => `<div class="point-item"><div class="point-dot ${p.type}"></div><span>${p.text}</span></div>`).join('');
+  const stabPoints = pointsHtml(r.stability_points);
+
+  const criteria = r.criteria || [];
+  const criteriaHtml = criteria.map((c, i) => {
+    const color = getColor(c.score);
+    const name = (m.criteriaNames && m.criteriaNames[i]) || `Criteria ${i + 1}`;
+    return `
+      <div class="criteria-item">
+        <div class="criteria-head">
+          <span class="criteria-name">${i + 1}. ${name}</span>
+          <span class="criteria-score ${color}">${c.score}%</span>
+        </div>
+        <div class="criteria-bar"><div class="criteria-fill ${color}" style="width:${c.score}%"></div></div>
+        <div class="criteria-comment">${c.comment || ''}</div>
+      </div>`;
+  }).join('');
+
+  // Replace the salary lock-icon card in the top grid with the real number
+  const scoresGrid = document.querySelector('.scores-grid');
+  if (scoresGrid && scoresGrid.children.length === 4) {
+    scoresGrid.children[3].outerHTML = `
+      <div class="score-card blue">
+        <div class="score-label">${m.salaryLabel}${confBadge}</div>
+        <div class="score-val">${r.salary_currency} ${(r.salary_min||0).toLocaleString()}~${(r.salary_max||0).toLocaleString()}</div>
+        <div class="score-sub">${r.salary_vs}</div>
+      </div>`;
+  }
+
+  const unlockCard = document.getElementById('unlockCard');
+  if (unlockCard) {
+    unlockCard.outerHTML = `
+    <div class="card">
+      <div class="detail-section">
+        <h4>${m.criteriaSection}</h4>
+        ${criteriaHtml}
+      </div>
       <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
       <div class="detail-section">
         <h4>${m.salarySection}</h4>
         <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.salary_note}</p>
         ${(r.salary_basis || []).length ? `
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray);margin-bottom:8px;">${currentLang === 'ko' ? '판단 근거' : 'Basis of Estimate'}</div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray);margin-bottom:8px;">${isKo ? '판단 근거' : 'Basis of Estimate'}</div>
         ${(r.salary_basis || []).map(b => `<div class="point-item"><div class="point-dot" style="background:var(--accent);"></div><span>${b}</span></div>`).join('')}
         ` : ''}
       </div>
       <hr style="border:none;border-top:1px solid var(--gray-light);margin:20px 0;">
       <div class="detail-section">
-        <h4>🏢 ${currentLang === 'ko' ? '회사 안정성' : 'Company Stability'}</h4>
+        <h4>🏢 ${isKo ? '회사 안정성' : 'Company Stability'}</h4>
         <p style="font-size:14px;color:var(--gray);margin-bottom:12px;">${r.stability_summary}</p>
         ${stabPoints}
       </div>
-    </div>
-  `;
-  document.getElementById('view-result').style.display = 'block';
+    </div>`;
+  }
 }
 
 function analyzeAnother() {
